@@ -79,7 +79,7 @@ public class MediaLayout extends RelativeLayout {
             mVideoButton.setImageResource(android.R.drawable.ic_media_play);
             mVideoButton.setOnClickListener(new OnClickListener() {
 
-                @Override
+                
                 public void onClick(View v) {
                     String videoFilename = "";
                     try {
@@ -180,7 +180,7 @@ public class MediaLayout extends RelativeLayout {
                                 File bigImage = new File(bigImageFilename);
 
 
-                                @Override
+                                
                                 public void onClick(View v) {
                                     Intent i = new Intent("android.intent.action.VIEW");
                                     i.setDataAndType(Uri.fromFile(bigImage), "image/*");

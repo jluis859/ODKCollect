@@ -44,7 +44,7 @@ public class AudioButton extends ImageButton implements OnClickListener {
     }
 
 
-    @Override
+    
     public void onClick(View v) {
         if (URI == null) {
             // No audio file specified
@@ -80,7 +80,7 @@ public class AudioButton extends ImageButton implements OnClickListener {
             player.prepare();
             player.start();
             player.setOnCompletionListener(new OnCompletionListener() {
-                @Override
+                
                 public void onCompletion(MediaPlayer mediaPlayer) {
                     mediaPlayer.release();
                 }

@@ -79,7 +79,7 @@ public class ImageWidget extends QuestionWidget implements IBinaryWidget {
 
         // launch capture intent on click
         mCaptureButton.setOnClickListener(new View.OnClickListener() {
-            @Override
+            
             public void onClick(View v) {
                 Intent i = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                 // We give the camera an absolute filename/path where to put the
@@ -110,7 +110,7 @@ public class ImageWidget extends QuestionWidget implements IBinaryWidget {
 
         // launch capture intent on click
         mChooseButton.setOnClickListener(new View.OnClickListener() {
-            @Override
+            
             public void onClick(View v) {
                 Intent i = new Intent(Intent.ACTION_GET_CONTENT);
                 i.setType("image/*");
@@ -150,7 +150,7 @@ public class ImageWidget extends QuestionWidget implements IBinaryWidget {
             mImageView.setPadding(10, 10, 10, 10);
             mImageView.setAdjustViewBounds(true);
             mImageView.setOnClickListener(new View.OnClickListener() {
-                @Override
+                
                 public void onClick(View v) {
                     Intent i = new Intent("android.intent.action.VIEW");
                     String[] projection = {
@@ -257,7 +257,7 @@ public class ImageWidget extends QuestionWidget implements IBinaryWidget {
     }
 
 
-    @Override
+    
     public void setBinaryData(Object binaryuri) {
         // you are replacing an answer. delete the previous image using the
         // content provider.
@@ -282,7 +282,7 @@ public class ImageWidget extends QuestionWidget implements IBinaryWidget {
     }
 
 
-    @Override
+    
     public boolean isWaitingForBinaryData() {
         return mWaitingForData;
     }

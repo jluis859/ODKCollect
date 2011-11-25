@@ -689,7 +689,6 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
                 // Create 'save' button
                 ((Button) endView.findViewById(R.id.save_exit_button))
                         .setOnClickListener(new OnClickListener() {
-                            @Override
                             public void onClick(View v) {
                                 // Form is marked as 'saved' here.
                                 if (saveAs.getText().length() < 1) {
@@ -934,7 +933,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
         mAlertDialog = new AlertDialog.Builder(this).create();
         mAlertDialog.setIcon(android.R.drawable.ic_dialog_info);
         DialogInterface.OnClickListener repeatListener = new DialogInterface.OnClickListener() {
-            @Override
+            
             public void onClick(DialogInterface dialog, int i) {
                 switch (i) {
                     case DialogInterface.BUTTON1: // yes, repeat
@@ -977,7 +976,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
         mAlertDialog.setTitle(getString(R.string.error_occured));
         mAlertDialog.setMessage(errorMsg);
         DialogInterface.OnClickListener errorListener = new DialogInterface.OnClickListener() {
-            @Override
+            
             public void onClick(DialogInterface dialog, int i) {
                 switch (i) {
                     case DialogInterface.BUTTON1:
@@ -1008,7 +1007,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
         mAlertDialog.setTitle(getString(R.string.delete_repeat_ask));
         mAlertDialog.setMessage(getString(R.string.delete_repeat_confirm, name));
         DialogInterface.OnClickListener quitListener = new DialogInterface.OnClickListener() {
-            @Override
+            
             public void onClick(DialogInterface dialog, int i) {
                 switch (i) {
                     case DialogInterface.BUTTON1: // yes
@@ -1063,14 +1062,14 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
                     .setTitle(getString(R.string.quit_application, mFormController.getFormTitle()))
                     .setNeutralButton(getString(R.string.do_not_exit),
                         new DialogInterface.OnClickListener() {
-                            @Override
+                            
                             public void onClick(DialogInterface dialog, int id) {
 
                                 dialog.cancel();
 
                             }
                         }).setItems(items, new DialogInterface.OnClickListener() {
-                        @Override
+                        
                         public void onClick(DialogInterface dialog, int which) {
                             switch (which) {
 
@@ -1151,7 +1150,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
 
         DialogInterface.OnClickListener quitListener = new DialogInterface.OnClickListener() {
 
-            @Override
+            
             public void onClick(DialogInterface dialog, int i) {
                 switch (i) {
                     case DialogInterface.BUTTON1: // yes
@@ -1188,7 +1187,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
             new AlertDialog.Builder(this)
                     .setSingleChoiceItems(languages, selected,
                         new DialogInterface.OnClickListener() {
-                            @Override
+                            
                             public void onClick(DialogInterface dialog, int whichButton) {
                                 // Update the language in the content provider when selecting a new
                                 // language
@@ -1215,7 +1214,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
                     .setTitle(getString(R.string.change_language))
                     .setNegativeButton(getString(R.string.do_not_change),
                         new DialogInterface.OnClickListener() {
-                            @Override
+                            
                             public void onClick(DialogInterface dialog, int whichButton) {
                             }
                         }).create();
@@ -1233,7 +1232,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
                 mProgressDialog = new ProgressDialog(this);
                 DialogInterface.OnClickListener loadingButtonListener =
                     new DialogInterface.OnClickListener() {
-                        @Override
+                        
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
                             mFormLoaderTask.setFormLoaderListener(null);
@@ -1253,7 +1252,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
                 mProgressDialog = new ProgressDialog(this);
                 DialogInterface.OnClickListener savingButtonListener =
                     new DialogInterface.OnClickListener() {
-                        @Override
+                        
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
                             mSaveToDiskTask.setFormSavedListener(null);
@@ -1367,19 +1366,19 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
     }
 
 
-    @Override
+    
     public void onAnimationEnd(Animation arg0) {
         mBeenSwiped = false;
     }
 
 
-    @Override
+    
     public void onAnimationRepeat(Animation animation) {
         // Added by AnimationListener interface.
     }
 
 
-    @Override
+    
     public void onAnimationStart(Animation animation) {
         // Added by AnimationListener interface.
     }
@@ -1388,7 +1387,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
     /**
      * loadingComplete() is called by FormLoaderTask once it has finished loading a form.
      */
-    @Override
+    
     public void loadingComplete(FormController fc) {
         dismissDialog(PROGRESS_DIALOG);
 
@@ -1444,7 +1443,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
     /**
      * called by the FormLoaderTask if something goes wrong.
      */
-    @Override
+    
     public void loadingError(String errorMsg) {
         dismissDialog(PROGRESS_DIALOG);
         if (errorMsg != null) {
@@ -1458,7 +1457,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
     /**
      * Called by SavetoDiskTask if everything saves correctly.
      */
-    @Override
+    
     public void savingComplete(int saveStatus) {
         dismissDialog(SAVING_DIALOG);
         switch (saveStatus) {
@@ -1563,13 +1562,13 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
     }
 
 
-    @Override
+    
     public boolean onDown(MotionEvent e) {
         return false;
     }
 
 
-    @Override
+    
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         // Looks for user swipes. If the user has swiped, move to the appropriate screen.
         if (Math.abs(e1.getX() - e2.getX()) > 60 && Math.abs(e1.getY() - e2.getY()) < 60) {
@@ -1588,12 +1587,12 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
     }
 
 
-    @Override
+    
     public void onLongPress(MotionEvent e) {
     }
 
 
-    @Override
+    
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
         // The onFling() captures the 'up' event so our view thinks it gets long pressed.
         // We don't wnat that, so cancel it.
@@ -1602,12 +1601,12 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
     }
 
 
-    @Override
+    
     public void onShowPress(MotionEvent e) {
     }
 
 
-    @Override
+    
     public boolean onSingleTapUp(MotionEvent e) {
         return false;
     }

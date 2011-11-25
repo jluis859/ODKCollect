@@ -76,7 +76,7 @@ public class MainMenuActivity extends Activity {
         mEnterDataButton = (Button) findViewById(R.id.enter_data);
         mEnterDataButton.setText(getString(R.string.enter_data_button));
         mEnterDataButton.setOnClickListener(new OnClickListener() {
-            @Override
+            
             public void onClick(View v) {
                 Intent i = new Intent(getApplicationContext(), FormChooserList.class);
                 startActivity(i);
@@ -87,7 +87,7 @@ public class MainMenuActivity extends Activity {
         mReviewDataButton = (Button) findViewById(R.id.review_data);
         mReviewDataButton.setText(getString(R.string.review_data_button));
         mReviewDataButton.setOnClickListener(new OnClickListener() {
-            @Override
+            
             public void onClick(View v) {
                 Intent i = new Intent(getApplicationContext(), InstanceChooserList.class);
                 startActivity(i);
@@ -98,7 +98,7 @@ public class MainMenuActivity extends Activity {
         mSendDataButton = (Button) findViewById(R.id.send_data);
         mSendDataButton.setText(getString(R.string.send_data_button));
         mSendDataButton.setOnClickListener(new OnClickListener() {
-            @Override
+            
             public void onClick(View v) {
                 Intent i = new Intent(getApplicationContext(), InstanceUploaderList.class);
                 startActivity(i);
@@ -109,7 +109,7 @@ public class MainMenuActivity extends Activity {
         mManageFilesButton = (Button) findViewById(R.id.manage_forms);
         mManageFilesButton.setText(getString(R.string.manage_files));
         mManageFilesButton.setOnClickListener(new OnClickListener() {
-            @Override
+            
             public void onClick(View v) {
                 Intent i = new Intent(getApplicationContext(), FileManagerTabs.class);
                 startActivity(i);
@@ -153,7 +153,7 @@ public class MainMenuActivity extends Activity {
         mAlertDialog.setIcon(android.R.drawable.ic_dialog_info);
         mAlertDialog.setMessage(errorMsg);
         DialogInterface.OnClickListener errorListener = new DialogInterface.OnClickListener() {
-            @Override
+            
             public void onClick(DialogInterface dialog, int i) {
                 switch (i) {
                     case DialogInterface.BUTTON1:

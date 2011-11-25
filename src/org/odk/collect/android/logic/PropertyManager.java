@@ -65,36 +65,36 @@ public class PropertyManager implements IPropertyManager {
     }
 
 
-    @Override
+    
     public Vector<String> getProperty(String propertyName) {
         return null;
     }
 
 
-    @Override
+    
     public String getSingularProperty(String propertyName) {
         return mProperties.get(propertyName.toLowerCase());
     }
 
 
-    @Override
+    
     public void setProperty(String propertyName, String propertyValue) {
     }
 
 
-    @Override
+    
     public void setProperty(String propertyName, @SuppressWarnings("rawtypes") Vector propertyValue) {
 
     }
 
 
-    @Override
+    
     public void addRules(IPropertyRules rules) {
 
     }
 
 
-    @Override
+    
     public Vector<IPropertyRules> getRules() {
         return null;
     }

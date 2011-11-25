@@ -76,7 +76,7 @@ public class GeoPointWidget extends QuestionWidget implements IBinaryWidget {
 
         // on play, launch the appropriate viewer
         mViewButton.setOnClickListener(new View.OnClickListener() {
-            @Override
+            
             public void onClick(View v) {
 
                 String s = mStringAnswer.getText().toString();
@@ -122,7 +122,6 @@ public class GeoPointWidget extends QuestionWidget implements IBinaryWidget {
         
         // when you press the button
         mGetLocationButton.setOnClickListener(new View.OnClickListener() {
-            @Override
             public void onClick(View v) {
                 Intent i = null;
                 if (mUseMaps) {
@@ -223,7 +222,7 @@ public class GeoPointWidget extends QuestionWidget implements IBinaryWidget {
     }
 
 
-    @Override
+    
     public void setBinaryData(Object answer) {
         String s = (String) answer;
         mStringAnswer.setText(s);
@@ -239,7 +238,7 @@ public class GeoPointWidget extends QuestionWidget implements IBinaryWidget {
     }
 
 
-    @Override
+    
     public boolean isWaitingForBinaryData() {
         return mWaitingForData;
     }

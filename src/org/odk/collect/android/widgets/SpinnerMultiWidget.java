@@ -105,7 +105,7 @@ public class SpinnerMultiWidget extends QuestionWidget {
                 alert_builder.setMultiChoiceItems(answer_items, selections,
                     new DialogInterface.OnMultiChoiceClickListener() {
 
-                        @Override
+                        
                         public void onClick(DialogInterface dialog, int which, boolean isChecked) {
                             selections[which] = isChecked;
                         }

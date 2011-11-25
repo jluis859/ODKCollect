@@ -67,7 +67,7 @@ public class InstanceUploaderList extends ListActivity {
         mUploadButton = (Button) findViewById(R.id.upload_button);
         mUploadButton.setOnClickListener(new OnClickListener() {
 
-            @Override
+            
             public void onClick(View arg0) {
                 if (mSelected.size() > 0) {
                     // items selected
@@ -87,7 +87,7 @@ public class InstanceUploaderList extends ListActivity {
 
         mToggleButton = (Button) findViewById(R.id.toggle_button);
         mToggleButton.setOnClickListener(new OnClickListener() {
-            @Override
+            
             public void onClick(View v) {
                 // toggle selections of items to all or none
                 ListView ls = getListView();

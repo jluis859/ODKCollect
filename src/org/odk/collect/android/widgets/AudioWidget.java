@@ -76,7 +76,7 @@ public class AudioWidget extends QuestionWidget implements IBinaryWidget {
 
         // launch capture intent on click
         mCaptureButton.setOnClickListener(new View.OnClickListener() {
-            @Override
+            
             public void onClick(View v) {
                 Intent i = new Intent(android.provider.MediaStore.Audio.Media.RECORD_SOUND_ACTION);
                 i.putExtra(android.provider.MediaStore.EXTRA_OUTPUT,
@@ -97,7 +97,7 @@ public class AudioWidget extends QuestionWidget implements IBinaryWidget {
 
         // launch capture intent on click
         mChooseButton.setOnClickListener(new View.OnClickListener() {
-            @Override
+            
             public void onClick(View v) {
                 Intent i = new Intent(Intent.ACTION_GET_CONTENT);
                 i.setType("audio/*");
@@ -116,7 +116,7 @@ public class AudioWidget extends QuestionWidget implements IBinaryWidget {
 
         // on play, launch the appropriate viewer
         mPlayButton.setOnClickListener(new View.OnClickListener() {
-            @Override
+            
             public void onClick(View v) {
                 Intent i = new Intent("android.intent.action.VIEW");
                 File f = new File(mInstanceFolder + "/" + mBinaryName);
@@ -190,7 +190,7 @@ public class AudioWidget extends QuestionWidget implements IBinaryWidget {
     }
 
 
-    @Override
+    
     public void setBinaryData(Object binaryuri) {
         // when replacing an answer. remove the current media.
         if (mBinaryName != null) {
@@ -235,7 +235,7 @@ public class AudioWidget extends QuestionWidget implements IBinaryWidget {
     }
 
 
-    @Override
+    
     public boolean isWaitingForBinaryData() {
         return mWaitingForData;
     }

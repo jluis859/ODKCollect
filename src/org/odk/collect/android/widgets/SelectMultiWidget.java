@@ -67,7 +67,7 @@ public class SelectMultiWidget extends QuestionWidget {
 
                 // when clicked, check for readonly before toggling
                 c.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
+                    
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                         if (!mCheckboxInit && mPrompt.isReadOnly()) {
                             if (buttonView.isChecked()) {

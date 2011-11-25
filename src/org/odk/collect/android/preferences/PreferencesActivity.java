@@ -107,7 +107,7 @@ public class PreferencesActivity extends PreferenceActivity implements
                 }
 
 
-                @Override
+                
                 public boolean onPreferenceClick(Preference preference) {
                     // if you have a value, you can clear it or select new.
                     CharSequence cs = mSplashPathPreference.getSummary();
@@ -123,13 +123,13 @@ public class PreferencesActivity extends PreferenceActivity implements
                         builder.setTitle(getString(R.string.change_splash_path));
                         builder.setNeutralButton(getString(R.string.cancel),
                             new DialogInterface.OnClickListener() {
-                                @Override
+                                
                                 public void onClick(DialogInterface dialog, int id) {
                                     dialog.dismiss();
                                 }
                             });
                         builder.setItems(items, new DialogInterface.OnClickListener() {
-                            @Override
+                            
                             public void onClick(DialogInterface dialog, int item) {
                                 if (items[item].equals(getString(R.string.select_another_image))) {
                                     launchImageChooser();
@@ -210,7 +210,7 @@ public class PreferencesActivity extends PreferenceActivity implements
     }
 
 
-    @Override
+    
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.equals(KEY_PROTOCOL)) {
             updateProtocol();

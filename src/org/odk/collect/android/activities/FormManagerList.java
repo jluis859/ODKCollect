@@ -68,7 +68,7 @@ public class FormManagerList extends ListActivity implements DiskSyncListener {
         mGetButton = (Button) findViewById(R.id.get_button);
         mGetButton.setText(getString(R.string.get_forms));
         mGetButton.setOnClickListener(new OnClickListener() {
-            @Override
+            
             public void onClick(View v) {
                 Intent i = new Intent(getApplicationContext(), FormDownloadList.class);
                 startActivity(i);
@@ -78,7 +78,7 @@ public class FormManagerList extends ListActivity implements DiskSyncListener {
         mDeleteButton = (Button) findViewById(R.id.delete_button);
         mDeleteButton.setText(getString(R.string.delete_file));
         mDeleteButton.setOnClickListener(new OnClickListener() {
-            @Override
+            
             public void onClick(View v) {
 
                 if (mSelected.size() > 0) {
@@ -159,7 +159,7 @@ public class FormManagerList extends ListActivity implements DiskSyncListener {
         mAlertDialog.setMessage(getString(R.string.delete_confirm, mSelected.size()));
         DialogInterface.OnClickListener dialogYesNoListener =
             new DialogInterface.OnClickListener() {
-                @Override
+                
                 public void onClick(DialogInterface dialog, int i) {
                     switch (i) {
                         case DialogInterface.BUTTON1: // delete and
@@ -267,7 +267,7 @@ public class FormManagerList extends ListActivity implements DiskSyncListener {
     }
 
 
-    @Override
+    
     public void SyncComplete(String result) {
         Log.i(t, "Disk scan complete");
         TextView tv = (TextView) findViewById(R.id.status_text);

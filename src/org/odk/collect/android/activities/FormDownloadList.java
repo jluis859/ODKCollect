@@ -128,7 +128,6 @@ public class FormDownloadList extends ListActivity implements FormListDownloader
         mDownloadButton = (Button) findViewById(R.id.add_button);
         mDownloadButton.setEnabled(selectedItemCount() > 0);
         mDownloadButton.setOnClickListener(new OnClickListener() {
-            @Override
             public void onClick(View v) {
                 downloadSelectedFiles();
                 mToggled = false;
@@ -138,7 +137,6 @@ public class FormDownloadList extends ListActivity implements FormListDownloader
 
         mToggleButton = (Button) findViewById(R.id.toggle_button);
         mToggleButton.setOnClickListener(new OnClickListener() {
-            @Override
             public void onClick(View v) {
                 // toggle selections of items to all or none
                 ListView ls = getListView();
@@ -154,7 +152,6 @@ public class FormDownloadList extends ListActivity implements FormListDownloader
 
         mRefreshButton = (Button) findViewById(R.id.refresh_button);
         mRefreshButton.setOnClickListener(new OnClickListener() {
-            @Override
             public void onClick(View v) {
                 mToggled = false;
                 downloadFormList();
@@ -331,7 +328,6 @@ public class FormDownloadList extends ListActivity implements FormListDownloader
                 mProgressDialog = new ProgressDialog(this);
                 DialogInterface.OnClickListener loadingButtonListener =
                     new DialogInterface.OnClickListener() {
-                        @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
                             // we use the same progress dialog for both
@@ -382,7 +378,6 @@ public class FormDownloadList extends ListActivity implements FormListDownloader
                 b.setMessage(getString(R.string.server_auth_credentials, url));
                 b.setView(dialogView);
                 b.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                    @Override
                     public void onClick(DialogInterface dialog, int which) {
                         EditText username = (EditText) dialogView.findViewById(R.id.username_edit);
                         EditText password = (EditText) dialogView.findViewById(R.id.password_edit);
@@ -397,7 +392,6 @@ public class FormDownloadList extends ListActivity implements FormListDownloader
                 });
                 b.setNegativeButton(getString(R.string.cancel),
                     new DialogInterface.OnClickListener() {
-                        @Override
                         public void onClick(DialogInterface dialog, int which) {
                             finish();
                         }
@@ -549,7 +543,6 @@ public class FormDownloadList extends ListActivity implements FormListDownloader
         mAlertDialog.setTitle(title);
         mAlertDialog.setMessage(message);
         DialogInterface.OnClickListener quitListener = new DialogInterface.OnClickListener() {
-            @Override
             public void onClick(DialogInterface dialog, int i) {
                 switch (i) {
                     case DialogInterface.BUTTON1: // ok
@@ -574,14 +567,12 @@ public class FormDownloadList extends ListActivity implements FormListDownloader
     }
 
 
-    @Override
     public void progressUpdate(String currentFile, int progress, int total) {
         mAlertMsg = getString(R.string.fetching_file, currentFile, progress, total);
         mProgressDialog.setMessage(mAlertMsg);
     }
 
 
-    @Override
     public void formsDownloadingComplete(HashMap<String, String> result) {
         if (mDownloadFormsTask != null) {
             mDownloadFormsTask.setDownloaderListener(null);

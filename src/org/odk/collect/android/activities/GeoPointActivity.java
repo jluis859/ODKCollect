@@ -107,7 +107,7 @@ public class GeoPointActivity extends Activity implements LocationListener {
         mLocationDialog = new ProgressDialog(this);
         DialogInterface.OnClickListener geopointButtonListener =
             new DialogInterface.OnClickListener() {
-                @Override
+                
                 public void onClick(DialogInterface dialog, int which) {
                     switch (which) {
                         case DialogInterface.BUTTON1:
@@ -147,7 +147,7 @@ public class GeoPointActivity extends Activity implements LocationListener {
     }
 
 
-    @Override
+    
     public void onLocationChanged(Location location) {
         mLocation = location;
         if (mLocation != null) {
@@ -167,19 +167,19 @@ public class GeoPointActivity extends Activity implements LocationListener {
     }
 
 
-    @Override
+    
     public void onProviderDisabled(String provider) {
 
     }
 
 
-    @Override
+    
     public void onProviderEnabled(String provider) {
 
     }
 
 
-    @Override
+    
     public void onStatusChanged(String provider, int status, Bundle extras) {
         switch (status) {
             case LocationProvider.AVAILABLE:

@@ -52,7 +52,6 @@ public class DataManagerList extends ListActivity {
     private static final String SELECTED = "selected";
 
 
-    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.data_manage_list);
@@ -60,7 +59,6 @@ public class DataManagerList extends ListActivity {
         mDeleteButton = (Button) findViewById(R.id.delete_button);
         mDeleteButton.setText(getString(R.string.delete_file));
         mDeleteButton.setOnClickListener(new OnClickListener() {
-            @Override
             public void onClick(View v) {
                 if (mSelected.size() > 0) {
                     createDeleteInstanceDialog();
@@ -113,7 +111,6 @@ public class DataManagerList extends ListActivity {
         mAlertDialog.setMessage(getString(R.string.delete_confirm, mSelected.size()));
         DialogInterface.OnClickListener dialogYesNoListener =
             new DialogInterface.OnClickListener() {
-                @Override
                 public void onClick(DialogInterface dialog, int i) {
                     switch (i) {
                         case DialogInterface.BUTTON1: // delete files and clear checkboxes

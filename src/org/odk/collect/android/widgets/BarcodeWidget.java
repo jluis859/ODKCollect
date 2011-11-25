@@ -58,7 +58,7 @@ public class BarcodeWidget extends QuestionWidget implements IBinaryWidget {
 
         // launch barcode capture intent on click
         mGetBarcodeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
+            
             public void onClick(View v) {
                 Intent i = new Intent("com.google.zxing.client.android.SCAN");
                 mWaitingForData = true;
@@ -111,7 +111,7 @@ public class BarcodeWidget extends QuestionWidget implements IBinaryWidget {
     /**
      * Allows answer to be set externally in {@Link FormEntryActivity}.
      */
-    @Override
+    
     public void setBinaryData(Object answer) {
         mStringAnswer.setText((String) answer);
         mWaitingForData = false;
@@ -127,7 +127,7 @@ public class BarcodeWidget extends QuestionWidget implements IBinaryWidget {
     }
 
 
-    @Override
+    
     public boolean isWaitingForBinaryData() {
         return mWaitingForData;
     }

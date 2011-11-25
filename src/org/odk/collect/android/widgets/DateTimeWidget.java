@@ -63,7 +63,7 @@ public class DateTimeWidget extends QuestionWidget {
         }
 
         mDateListener = new DatePicker.OnDateChangedListener() {
-            @Override
+            
             public void onDateChanged(DatePicker view, int year, int month, int day) {
                 if (mPrompt.isReadOnly()) {
                     setAnswer();

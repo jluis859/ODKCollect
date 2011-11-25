@@ -72,7 +72,7 @@ public class GeoPointMapActivity extends MapActivity implements LocationListener
         mCancelLocation = (Button) findViewById(R.id.cancel_location);
         mCancelLocation.setOnClickListener(new OnClickListener() {
 
-            @Override
+            
             public void onClick(View v) {
                 finish();
             }
@@ -109,7 +109,7 @@ public class GeoPointMapActivity extends MapActivity implements LocationListener
             mAcceptLocation = (Button) findViewById(R.id.accept_location);
             mAcceptLocation.setOnClickListener(new OnClickListener() {
 
-                @Override
+                
                 public void onClick(View v) {
                     returnLocation();
                 }
@@ -126,7 +126,7 @@ public class GeoPointMapActivity extends MapActivity implements LocationListener
             mShowLocation.setVisibility(View.VISIBLE);
             mShowLocation.setOnClickListener(new OnClickListener() {
 
-                @Override
+                
                 public void onClick(View v) {
                     mMapController.animateTo(mGeoPoint);
                 }
@@ -184,7 +184,7 @@ public class GeoPointMapActivity extends MapActivity implements LocationListener
     }
 
 
-    @Override
+    
     public void onLocationChanged(Location location) {
         if (mCaptureLocation) {
             mLocation = location;
@@ -205,17 +205,17 @@ public class GeoPointMapActivity extends MapActivity implements LocationListener
     }
 
 
-    @Override
+    
     public void onProviderDisabled(String provider) {
     }
 
 
-    @Override
+    
     public void onProviderEnabled(String provider) {
     }
 
 
-    @Override
+    
     public void onStatusChanged(String provider, int status, Bundle extras) {
     }
 
