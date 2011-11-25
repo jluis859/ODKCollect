@@ -7,6 +7,7 @@ import org.odk.collect.android.R;
 import org.odk.collect.android.utilities.FileUtils;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -79,7 +80,7 @@ public class MediaLayout extends RelativeLayout {
             mVideoButton.setImageResource(android.R.drawable.ic_media_play);
             mVideoButton.setOnClickListener(new OnClickListener() {
 
-                
+                @Override
                 public void onClick(View v) {
                     String videoFilename = "";
                     try {
@@ -102,7 +103,13 @@ public class MediaLayout extends RelativeLayout {
 
                     Intent i = new Intent("android.intent.action.VIEW");
                     i.setDataAndType(Uri.fromFile(videoFile), "video/*");
-                    ((Activity) getContext()).startActivity(i);
+                    try {
+                        ((Activity) getContext()).startActivity(i);
+                    } catch (ActivityNotFoundException e) {
+                        Toast.makeText(getContext(),
+                            getContext().getString(R.string.activity_not_found, "view video"),
+                            Toast.LENGTH_SHORT);
+                    }
                 }
 
             });
@@ -144,10 +151,14 @@ public class MediaLayout extends RelativeLayout {
                 if (imageFile.exists()) {
                     Bitmap b = null;
                     try {
-                        Display display = ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay(); 
+                        Display display =
+                            ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE))
+                                    .getDefaultDisplay();
                         int screenWidth = display.getWidth();
                         int screenHeight = display.getHeight();
-                        b = FileUtils.getBitmapScaledToDisplay(imageFile, screenHeight, screenWidth);
+                        b =
+                            FileUtils
+                                    .getBitmapScaledToDisplay(imageFile, screenHeight, screenWidth);
                     } catch (OutOfMemoryError e) {
                         errorMsg = "ERROR: " + e.getMessage();
                     }
@@ -180,11 +191,18 @@ public class MediaLayout extends RelativeLayout {
                                 File bigImage = new File(bigImageFilename);
 
 
-                                
+                                @Override
                                 public void onClick(View v) {
                                     Intent i = new Intent("android.intent.action.VIEW");
                                     i.setDataAndType(Uri.fromFile(bigImage), "image/*");
-                                    getContext().startActivity(i);
+                                    try {
+                                        getContext().startActivity(i);
+                                    } catch (ActivityNotFoundException e) {
+                                        Toast.makeText(
+                                            getContext(),
+                                            getContext().getString(R.string.activity_not_found,
+                                                "view image"), Toast.LENGTH_SHORT);
+                                    }
                                 }
                             });
                         }

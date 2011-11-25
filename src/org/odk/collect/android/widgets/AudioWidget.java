@@ -22,6 +22,7 @@ import org.odk.collect.android.activities.FormEntryActivity;
 import org.odk.collect.android.utilities.FileUtils;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -34,6 +35,8 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TableLayout;
+import android.widget.Toast;
 
 import java.io.File;
 
@@ -66,24 +69,34 @@ public class AudioWidget extends QuestionWidget implements IBinaryWidget {
                 FormEntryActivity.mInstancePath.lastIndexOf("/") + 1);
 
         setOrientation(LinearLayout.VERTICAL);
-
+        
+        TableLayout.LayoutParams params = new TableLayout.LayoutParams();
+        params.setMargins(7, 5, 7, 5);
+        
         // setup capture button
         mCaptureButton = new Button(getContext());
         mCaptureButton.setText(getContext().getString(R.string.capture_audio));
         mCaptureButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, mAnswerFontsize);
         mCaptureButton.setPadding(20, 20, 20, 20);
         mCaptureButton.setEnabled(!prompt.isReadOnly());
+        mCaptureButton.setLayoutParams(params);
 
         // launch capture intent on click
         mCaptureButton.setOnClickListener(new View.OnClickListener() {
-            
+            @Override
             public void onClick(View v) {
                 Intent i = new Intent(android.provider.MediaStore.Audio.Media.RECORD_SOUND_ACTION);
                 i.putExtra(android.provider.MediaStore.EXTRA_OUTPUT,
                     android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI.toString());
                 mWaitingForData = true;
+                try {
                 ((Activity) getContext())
                         .startActivityForResult(i, FormEntryActivity.AUDIO_CAPTURE);
+                } catch (ActivityNotFoundException e) {
+                    Toast.makeText(getContext(),
+                        getContext().getString(R.string.activity_not_found, "audio capture"),
+                        Toast.LENGTH_SHORT);
+                }
 
             }
         });
@@ -94,16 +107,23 @@ public class AudioWidget extends QuestionWidget implements IBinaryWidget {
         mChooseButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, mAnswerFontsize);
         mChooseButton.setPadding(20, 20, 20, 20);
         mChooseButton.setEnabled(!prompt.isReadOnly());
-
+        mChooseButton.setLayoutParams(params);
+        
         // launch capture intent on click
         mChooseButton.setOnClickListener(new View.OnClickListener() {
-            
+            @Override
             public void onClick(View v) {
                 Intent i = new Intent(Intent.ACTION_GET_CONTENT);
                 i.setType("audio/*");
                 mWaitingForData = true;
+                try {
                 ((Activity) getContext())
                         .startActivityForResult(i, FormEntryActivity.AUDIO_CHOOSER);
+                } catch (ActivityNotFoundException e) {
+                    Toast.makeText(getContext(),
+                        getContext().getString(R.string.activity_not_found, "choose audio"),
+                        Toast.LENGTH_SHORT);
+                }
 
             }
         });
@@ -113,15 +133,22 @@ public class AudioWidget extends QuestionWidget implements IBinaryWidget {
         mPlayButton.setText(getContext().getString(R.string.play_audio));
         mPlayButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, mAnswerFontsize);
         mPlayButton.setPadding(20, 20, 20, 20);
+        mPlayButton.setLayoutParams(params);
 
         // on play, launch the appropriate viewer
         mPlayButton.setOnClickListener(new View.OnClickListener() {
-            
+            @Override
             public void onClick(View v) {
                 Intent i = new Intent("android.intent.action.VIEW");
                 File f = new File(mInstanceFolder + "/" + mBinaryName);
                 i.setDataAndType(Uri.fromFile(f), "audio/*");
+                try {
                 ((Activity) getContext()).startActivity(i);
+                } catch (ActivityNotFoundException e) {
+                    Toast.makeText(getContext(),
+                        getContext().getString(R.string.activity_not_found, "play audio"),
+                        Toast.LENGTH_SHORT);
+                }
 
             }
         });
@@ -174,23 +201,27 @@ public class AudioWidget extends QuestionWidget implements IBinaryWidget {
 
 
     private String getPathFromUri(Uri uri) {
-
-        String[] audioProjection = {
-            Audio.Media.DATA
-        };
-        Cursor c = ((Activity) getContext()).managedQuery(uri, audioProjection, null, null, null);
-        ((Activity) getContext()).startManagingCursor(c);
-        int column_index = c.getColumnIndexOrThrow(Audio.Media.DATA);
-        String audioPath = null;
-        if (c.getCount() > 0) {
-            c.moveToFirst();
-            audioPath = c.getString(column_index);
+        if (uri.toString().startsWith("file")) {
+            return uri.toString().substring(6);
+        } else {
+            String[] audioProjection = {
+                Audio.Media.DATA
+            };
+            Cursor c =
+                ((Activity) getContext()).managedQuery(uri, audioProjection, null, null, null);
+            ((Activity) getContext()).startManagingCursor(c);
+            int column_index = c.getColumnIndexOrThrow(Audio.Media.DATA);
+            String audioPath = null;
+            if (c.getCount() > 0) {
+                c.moveToFirst();
+                audioPath = c.getString(column_index);
+            }
+            return audioPath;
         }
-        return audioPath;
     }
 
 
-    
+    @Override
     public void setBinaryData(Object binaryuri) {
         // when replacing an answer. remove the current media.
         if (mBinaryName != null) {
@@ -235,7 +266,7 @@ public class AudioWidget extends QuestionWidget implements IBinaryWidget {
     }
 
 
-    
+    @Override
     public boolean isWaitingForBinaryData() {
         return mWaitingForData;
     }

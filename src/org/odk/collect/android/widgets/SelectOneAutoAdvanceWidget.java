@@ -14,6 +14,8 @@
 
 package org.odk.collect.android.widgets;
 
+import java.util.Vector;
+
 import org.javarosa.core.model.SelectChoice;
 import org.javarosa.core.model.data.IAnswerData;
 import org.javarosa.core.model.data.SelectOneData;
@@ -35,8 +37,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RelativeLayout;
-
-import java.util.Vector;
 
 /**
  * SelectOneWidgets handles select-one fields using radio buttons. Unlike the classic
@@ -91,7 +91,7 @@ public class SelectOneAutoAdvanceWidget extends QuestionWidget implements OnChec
                 r.setEnabled(!prompt.isReadOnly());
                 r.setFocusable(!prompt.isReadOnly());
 
-                Drawable image = getResources().getDrawable(R.drawable.right_arrow);
+                Drawable image = getResources().getDrawable(R.drawable.expander_ic_right);
                 rightArrow.setImageDrawable(image);
 
                 buttons.add(r);
@@ -176,19 +176,22 @@ public class SelectOneAutoAdvanceWidget extends QuestionWidget implements OnChec
     }
 
 
-    
+    @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        if (!buttonView.isPressed()) {
+            return;
+        }
         if (!isChecked) {
             // If it got unchecked, we don't care.
             return;
         }
 
-        listener.next();
         for (RadioButton button : this.buttons) {
             if (button.isChecked() && !(buttonView == button)) {
                 button.setChecked(false);
             }
         }
+        listener.advance();
     }
 
 

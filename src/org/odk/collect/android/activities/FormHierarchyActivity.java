@@ -71,6 +71,7 @@ public class FormHierarchyActivity extends ListActivity {
 
         jumpPreviousButton = (Button) findViewById(R.id.jumpPreviousButton);
         jumpPreviousButton.setOnClickListener(new OnClickListener() {
+            @Override
             public void onClick(View v) {
                 goUpLevel();
             }
@@ -78,7 +79,7 @@ public class FormHierarchyActivity extends ListActivity {
 
         Button jumpBeginningButton = (Button) findViewById(R.id.jumpBeginningButton);
         jumpBeginningButton.setOnClickListener(new OnClickListener() {
-            
+            @Override
             public void onClick(View v) {
                 FormEntryActivity.mFormController.jumpToIndex(FormIndex
                         .createBeginningOfFormIndex());
@@ -89,7 +90,7 @@ public class FormHierarchyActivity extends ListActivity {
 
         Button jumpEndButton = (Button) findViewById(R.id.jumpEndButton);
         jumpEndButton.setOnClickListener(new OnClickListener() {
-            
+            @Override
             public void onClick(View v) {
                 FormEntryActivity.mFormController.jumpToIndex(FormIndex.createEndOfFormIndex());
                 setResult(RESULT_OK);
@@ -100,7 +101,7 @@ public class FormHierarchyActivity extends ListActivity {
         // kinda slow, but works.
         // this scrolls to the last question the user was looking at
         getListView().post(new Runnable() {
-            
+            @Override
             public void run() {
                 int position = 0;
                 for (int i = 0; i < getListAdapter().getCount(); i++) {

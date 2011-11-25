@@ -24,6 +24,7 @@ import org.javarosa.core.model.FormIndex;
 import org.javarosa.core.model.data.IAnswerData;
 import org.javarosa.form.api.FormEntryController;
 import org.javarosa.model.xform.XFormsModule;
+import org.javarosa.xpath.XPathTypeMismatchException;
 import org.odk.collect.android.R;
 import org.odk.collect.android.application.Collect;
 import org.odk.collect.android.listeners.AdvanceToNextListener;
@@ -49,14 +50,19 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
+import android.text.InputFilter;
+import android.text.Spanned;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -228,6 +234,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
 
             // Not a restart from a screen orientation change (or other).
             mFormController = null;
+            mInstancePath = null;
 
             Intent intent = getIntent();
             if (intent != null) {
@@ -368,15 +375,20 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
                  */
 
                 // get gp of chosen file
+                String sourceImagePath = null;
                 Uri selectedImage = intent.getData();
-                String[] projection = {
-                    Images.Media.DATA
-                };
-                Cursor cursor = managedQuery(selectedImage, projection, null, null, null);
-                startManagingCursor(cursor);
-                int column_index = cursor.getColumnIndexOrThrow(Images.Media.DATA);
-                cursor.moveToFirst();
-                String sourceImagePath = cursor.getString(column_index);
+                if (selectedImage.toString().startsWith("file")) {
+                    sourceImagePath = selectedImage.toString().substring(6);
+                } else {
+                    String[] projection = {
+                        Images.Media.DATA
+                    };
+                    Cursor cursor = managedQuery(selectedImage, projection, null, null, null);
+                    startManagingCursor(cursor);
+                    int column_index = cursor.getColumnIndexOrThrow(Images.Media.DATA);
+                    cursor.moveToFirst();
+                    sourceImagePath = cursor.getString(column_index);
+                }
 
                 // Copy file to sdcard
                 String mInstanceFolder1 =
@@ -489,7 +501,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
                 return true;
             case MENU_SAVE:
                 // don't exit
-                saveDataToDisk(DO_NOT_EXIT, isInstanceComplete(), null);
+                saveDataToDisk(DO_NOT_EXIT, isInstanceComplete(false), null);
                 return true;
             case MENU_HIERARCHY_VIEW:
                 if (currentPromptIsQuestion()) {
@@ -560,10 +572,13 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-        menu.add(0, v.getId(), 0, getString(R.string.clear_answer));
+        if (!mFormController.getQuestionPrompt().isReadOnly()) {
+            menu.add(0, v.getId(), 0, getString(R.string.clear_answer));
+        }
         if (mFormController.indexContainsRepeatableGroup()) {
             menu.add(0, DELETE_REPEAT, 0, getString(R.string.delete_repeat));
         }
+        menu.setHeaderTitle(getString(R.string.edit_prompt));
     }
 
 
@@ -655,10 +670,14 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
 
                 if (image == null) {
                     // show the opendatakit zig...
-                    image = getResources().getDrawable(R.drawable.opendatakit_zig);
+                    // image = getResources().getDrawable(R.drawable.opendatakit_zig);
+                    ((ImageView) startView.findViewById(R.id.form_start_bling))
+                            .setVisibility(View.GONE);
+                } else {
+                    ((ImageView) startView.findViewById(R.id.form_start_bling))
+                            .setImageDrawable(image);
                 }
 
-                ((ImageView) startView.findViewById(R.id.form_start_bling)).setImageDrawable(image);
                 return startView;
             case FormEntryController.EVENT_END_OF_FORM:
                 View endView = View.inflate(this, R.layout.form_entry_end, null);
@@ -668,10 +687,27 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
                 // checkbox for if finished or ready to send
                 final CheckBox instanceComplete =
                     ((CheckBox) endView.findViewById(R.id.mark_finished));
-                instanceComplete.setChecked(isInstanceComplete());
+                instanceComplete.setChecked(isInstanceComplete(true));
 
                 // edittext to change the displayed name of the instance
                 final EditText saveAs = (EditText) endView.findViewById(R.id.save_name);
+
+                // disallow carriage returns in the name
+                InputFilter returnFilter = new InputFilter() {
+                    public CharSequence filter(CharSequence source, int start, int end,
+                            Spanned dest, int dstart, int dend) {
+                        for (int i = start; i < end; i++) {
+                            if (Character.getType((source.charAt(i))) == Character.CONTROL) {
+                                return "";
+                            }
+                        }
+                        return null;
+                    }
+                };
+                saveAs.setFilters(new InputFilter[] {
+                    returnFilter
+                });
+
                 String saveName = mFormController.getFormTitle();
                 if (getContentResolver().getType(getIntent().getData()) == InstanceColumns.CONTENT_ITEM_TYPE) {
                     Uri instanceUri = getIntent().getData();
@@ -689,6 +725,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
                 // Create 'save' button
                 ((Button) endView.findViewById(R.id.save_exit_button))
                         .setOnClickListener(new OnClickListener() {
+                            @Override
                             public void onClick(View v) {
                                 // Form is marked as 'saved' here.
                                 if (saveAs.getText().length() < 1) {
@@ -771,7 +808,8 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
                         createRepeatDialog();
                         break group_skip;
                     case FormEntryController.EVENT_GROUP:
-                        if (mFormController.indexIsInFieldList()) {
+                        if (mFormController.indexIsInFieldList()
+                                && mFormController.getQuestionPrompts().length != 0) {
                             View nextGroupView = createView(event);
                             showView(nextGroupView, AnimationType.RIGHT);
                             break group_skip;
@@ -815,8 +853,9 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
 
             while (event != FormEntryController.EVENT_BEGINNING_OF_FORM
                     && event != FormEntryController.EVENT_QUESTION
-                    && !(event == FormEntryController.EVENT_GROUP && mFormController
-                            .indexIsInFieldList())) {
+                    && !(event == FormEntryController.EVENT_GROUP
+                            && mFormController.indexIsInFieldList() && mFormController
+                            .getQuestionPrompts().length != 0)) {
                 event = mFormController.stepToPreviousEvent();
             }
             View next = createView(event);
@@ -897,7 +936,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
                 break;
         }
 
-        showCustomToast(constraintText);
+        showCustomToast(constraintText, Toast.LENGTH_SHORT);
         mBeenSwiped = false;
     }
 
@@ -907,7 +946,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
      * 
      * @param message
      */
-    private void showCustomToast(String message) {
+    private void showCustomToast(String message, int duration) {
         LayoutInflater inflater =
             (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -919,7 +958,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
 
         Toast t = new Toast(this);
         t.setView(view);
-        t.setDuration(Toast.LENGTH_SHORT);
+        t.setDuration(duration);
         t.setGravity(Gravity.CENTER, 0, 0);
         t.show();
     }
@@ -933,11 +972,16 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
         mAlertDialog = new AlertDialog.Builder(this).create();
         mAlertDialog.setIcon(android.R.drawable.ic_dialog_info);
         DialogInterface.OnClickListener repeatListener = new DialogInterface.OnClickListener() {
-            
+            @Override
             public void onClick(DialogInterface dialog, int i) {
                 switch (i) {
                     case DialogInterface.BUTTON1: // yes, repeat
-                        mFormController.newRepeat();
+                        try {
+                            mFormController.newRepeat();
+                        } catch (XPathTypeMismatchException e) {
+                            FormEntryActivity.this.createErrorDialog(e.getMessage(), EXIT);
+                            return;
+                        }
                         showNextView();
                         break;
                     case DialogInterface.BUTTON2: // no, no repeat
@@ -972,11 +1016,11 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
     private void createErrorDialog(String errorMsg, final boolean shouldExit) {
         mErrorMessage = errorMsg;
         mAlertDialog = new AlertDialog.Builder(this).create();
-        mAlertDialog.setIcon(android.R.drawable.ic_dialog_alert);
+        mAlertDialog.setIcon(android.R.drawable.ic_dialog_info);
         mAlertDialog.setTitle(getString(R.string.error_occured));
         mAlertDialog.setMessage(errorMsg);
         DialogInterface.OnClickListener errorListener = new DialogInterface.OnClickListener() {
-            
+            @Override
             public void onClick(DialogInterface dialog, int i) {
                 switch (i) {
                     case DialogInterface.BUTTON1:
@@ -998,7 +1042,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
      */
     private void createDeleteRepeatConfirmDialog() {
         mAlertDialog = new AlertDialog.Builder(this).create();
-        mAlertDialog.setIcon(android.R.drawable.ic_dialog_alert);
+        mAlertDialog.setIcon(android.R.drawable.ic_dialog_info);
         String name = mFormController.getLastRepeatedGroupName();
         int repeatcount = mFormController.getLastRepeatedGroupRepeatCount();
         if (repeatcount != -1) {
@@ -1007,7 +1051,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
         mAlertDialog.setTitle(getString(R.string.delete_repeat_ask));
         mAlertDialog.setMessage(getString(R.string.delete_repeat_confirm, name));
         DialogInterface.OnClickListener quitListener = new DialogInterface.OnClickListener() {
-            
+            @Override
             public void onClick(DialogInterface dialog, int i) {
                 switch (i) {
                     case DialogInterface.BUTTON1: // yes
@@ -1058,23 +1102,23 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
 
         mAlertDialog =
             new AlertDialog.Builder(this)
-                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setIcon(android.R.drawable.ic_dialog_info)
                     .setTitle(getString(R.string.quit_application, mFormController.getFormTitle()))
                     .setNeutralButton(getString(R.string.do_not_exit),
                         new DialogInterface.OnClickListener() {
-                            
+                            @Override
                             public void onClick(DialogInterface dialog, int id) {
 
                                 dialog.cancel();
 
                             }
                         }).setItems(items, new DialogInterface.OnClickListener() {
-                        
+                        @Override
                         public void onClick(DialogInterface dialog, int which) {
                             switch (which) {
 
                                 case 0: // save and exit
-                                    saveDataToDisk(EXIT, isInstanceComplete(), null);
+                                    saveDataToDisk(EXIT, isInstanceComplete(false), null);
                                     break;
 
                                 case 1: // discard changes and exit
@@ -1086,28 +1130,106 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
                                         FormEntryActivity.this.managedQuery(
                                             InstanceColumns.CONTENT_URI, null, selection, null,
                                             null);
+
                                     // if it's not already saved, erase everything
                                     if (c.getCount() < 1) {
+                                        int images = 0;
+                                        int audio = 0;
+                                        int video = 0;
                                         // delete media first
                                         String instanceFolder =
                                             mInstancePath.substring(0,
                                                 mInstancePath.lastIndexOf("/") + 1);
                                         Log.i(t, "attempting to delete: " + instanceFolder);
+
                                         String where =
                                             Images.Media.DATA + " like '" + instanceFolder + "%'";
-                                        int images =
-                                            getContentResolver().delete(
-                                                Images.Media.EXTERNAL_CONTENT_URI, where, null);
-                                        int audio =
-                                            getContentResolver().delete(
-                                                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, where,
-                                                null);
-                                        int video =
-                                            getContentResolver().delete(
-                                                MediaStore.Video.Media.EXTERNAL_CONTENT_URI, where,
-                                                null);
-                                        Log.i(t, "revmoved from content providers: " + images
-                                                + " image files, " + audio + " audio files"
+
+                                        String[] projection = {
+                                            Images.ImageColumns._ID
+                                        };
+
+                                        // images
+                                        Cursor imageCursor =
+                                            getContentResolver()
+                                                    .query(
+                                                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                                        projection, where, null, null);
+                                        if (imageCursor.getCount() > 0) {
+                                            imageCursor.moveToFirst();
+                                            String id =
+                                                imageCursor.getString(imageCursor
+                                                        .getColumnIndex(Images.ImageColumns._ID));
+
+                                            Log.i(
+                                                t,
+                                                "attempting to delete: "
+                                                        + Uri.withAppendedPath(
+                                                            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                                            id));
+                                            images =
+                                                getContentResolver()
+                                                        .delete(
+                                                            Uri.withAppendedPath(
+                                                                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                                                id), null, null);
+                                        }
+                                        imageCursor.close();
+
+                                        // audio
+                                        Cursor audioCursor =
+                                            getContentResolver().query(
+                                                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                                projection, where, null, null);
+                                        if (audioCursor.getCount() > 0) {
+                                            audioCursor.moveToFirst();
+                                            String id =
+                                                audioCursor.getString(imageCursor
+                                                        .getColumnIndex(Images.ImageColumns._ID));
+
+                                            Log.i(
+                                                t,
+                                                "attempting to delete: "
+                                                        + Uri.withAppendedPath(
+                                                            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                                            id));
+                                            audio =
+                                                getContentResolver()
+                                                        .delete(
+                                                            Uri.withAppendedPath(
+                                                                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                                                id), null, null);
+                                        }
+                                        audioCursor.close();
+
+                                        // video
+                                        Cursor videoCursor =
+                                            getContentResolver().query(
+                                                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                                                projection, where, null, null);
+                                        if (videoCursor.getCount() > 0) {
+                                            videoCursor.moveToFirst();
+                                            String id =
+                                                videoCursor.getString(imageCursor
+                                                        .getColumnIndex(Images.ImageColumns._ID));
+
+                                            Log.i(
+                                                t,
+                                                "attempting to delete: "
+                                                        + Uri.withAppendedPath(
+                                                            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                                                            id));
+                                            video =
+                                                getContentResolver()
+                                                        .delete(
+                                                            Uri.withAppendedPath(
+                                                                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                                                                id), null, null);
+                                        }
+                                        audioCursor.close();
+
+                                        Log.i(t, "removed from content providers: " + images
+                                                + " image files, " + audio + " audio files,"
                                                 + " and " + video + " video files.");
                                         File f = new File(instanceFolder);
                                         if (f.exists() && f.isDirectory()) {
@@ -1124,7 +1246,6 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
 
                                 case 2:// do nothing
                                     break;
-
                             }
                         }
                     }).create();
@@ -1137,7 +1258,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
      */
     private void createClearDialog(final QuestionWidget qw) {
         mAlertDialog = new AlertDialog.Builder(this).create();
-        mAlertDialog.setIcon(android.R.drawable.ic_dialog_alert);
+        mAlertDialog.setIcon(android.R.drawable.ic_dialog_info);
 
         mAlertDialog.setTitle(getString(R.string.clear_answer_ask));
 
@@ -1150,7 +1271,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
 
         DialogInterface.OnClickListener quitListener = new DialogInterface.OnClickListener() {
 
-            
+            @Override
             public void onClick(DialogInterface dialog, int i) {
                 switch (i) {
                     case DialogInterface.BUTTON1: // yes
@@ -1187,7 +1308,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
             new AlertDialog.Builder(this)
                     .setSingleChoiceItems(languages, selected,
                         new DialogInterface.OnClickListener() {
-                            
+                            @Override
                             public void onClick(DialogInterface dialog, int whichButton) {
                                 // Update the language in the content provider when selecting a new
                                 // language
@@ -1214,7 +1335,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
                     .setTitle(getString(R.string.change_language))
                     .setNegativeButton(getString(R.string.do_not_change),
                         new DialogInterface.OnClickListener() {
-                            
+                            @Override
                             public void onClick(DialogInterface dialog, int whichButton) {
                             }
                         }).create();
@@ -1232,7 +1353,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
                 mProgressDialog = new ProgressDialog(this);
                 DialogInterface.OnClickListener loadingButtonListener =
                     new DialogInterface.OnClickListener() {
-                        
+                        @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
                             mFormLoaderTask.setFormLoaderListener(null);
@@ -1252,7 +1373,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
                 mProgressDialog = new ProgressDialog(this);
                 DialogInterface.OnClickListener savingButtonListener =
                     new DialogInterface.OnClickListener() {
-                        
+                        @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
                             mSaveToDiskTask.setFormSavedListener(null);
@@ -1359,26 +1480,24 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
             }
         }
 
-        mFormController = null;
-        mInstancePath = null;
         super.onDestroy();
 
     }
 
 
-    
+    @Override
     public void onAnimationEnd(Animation arg0) {
         mBeenSwiped = false;
     }
 
 
-    
+    @Override
     public void onAnimationRepeat(Animation animation) {
         // Added by AnimationListener interface.
     }
 
 
-    
+    @Override
     public void onAnimationStart(Animation animation) {
         // Added by AnimationListener interface.
     }
@@ -1387,7 +1506,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
     /**
      * loadingComplete() is called by FormLoaderTask once it has finished loading a form.
      */
-    
+    @Override
     public void loadingComplete(FormController fc) {
         dismissDialog(PROGRESS_DIALOG);
 
@@ -1443,7 +1562,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
     /**
      * called by the FormLoaderTask if something goes wrong.
      */
-    
+    @Override
     public void loadingError(String errorMsg) {
         dismissDialog(PROGRESS_DIALOG);
         if (errorMsg != null) {
@@ -1457,7 +1576,7 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
     /**
      * Called by SavetoDiskTask if everything saves correctly.
      */
-    
+    @Override
     public void savingComplete(int saveStatus) {
         dismissDialog(SAVING_DIALOG);
         switch (saveStatus) {
@@ -1507,9 +1626,20 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
      * 
      * @return true if form has been marked completed, false otherwise.
      */
-    private boolean isInstanceComplete() {
+    private boolean isInstanceComplete(boolean end) {
+        // default to false if we're mid form
         boolean complete = false;
 
+        // if we're at the end of the form, then check the preferences
+        if (end) {
+            // First get the value from the preferences
+            SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(this);
+            complete =
+                sharedPreferences.getBoolean(PreferencesActivity.KEY_COMPLETED_DEFAULT, true);
+        }
+
+        // Then see if we've already marked this form as complete before
         String selection = InstanceColumns.INSTANCE_FILE_PATH + "=?";
         String[] selectionArgs = {
             mInstancePath
@@ -1562,16 +1692,25 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
     }
 
 
-    
+    @Override
     public boolean onDown(MotionEvent e) {
         return false;
     }
 
 
-    
+    @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         // Looks for user swipes. If the user has swiped, move to the appropriate screen.
-        if (Math.abs(e1.getX() - e2.getX()) > 60 && Math.abs(e1.getY() - e2.getY()) < 60) {
+
+        // for all screens a swipe is left/right of at least .25" and up/down of less than .25"
+        // OR left/right of > .5"
+        DisplayMetrics dm = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(dm);
+        int xPixelLimit = (int) (dm.xdpi * .25);
+        int yPixelLimit = (int) (dm.ydpi * .25);
+
+        if ((Math.abs(e1.getX() - e2.getX()) > xPixelLimit && Math.abs(e1.getY() - e2.getY()) < yPixelLimit)
+                || Math.abs(e1.getX() - e2.getX()) > xPixelLimit * 2) {
             if (velocityX > 0) {
                 mBeenSwiped = true;
                 showPreviousView();
@@ -1587,12 +1726,12 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
     }
 
 
-    
+    @Override
     public void onLongPress(MotionEvent e) {
     }
 
 
-    
+    @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
         // The onFling() captures the 'up' event so our view thinks it gets long pressed.
         // We don't wnat that, so cancel it.
@@ -1601,14 +1740,20 @@ public class FormEntryActivity extends Activity implements AnimationListener, Fo
     }
 
 
-    
+    @Override
     public void onShowPress(MotionEvent e) {
     }
 
 
-    
+    @Override
     public boolean onSingleTapUp(MotionEvent e) {
         return false;
+    }
+
+
+    @Override
+    public void advance() {
+        next();
     }
 
 }

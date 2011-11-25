@@ -31,6 +31,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TableLayout;
 import android.widget.TextView;
 
 import java.text.DecimalFormat;
@@ -62,21 +63,26 @@ public class GeoPointWidget extends QuestionWidget implements IBinaryWidget {
 
         setOrientation(LinearLayout.VERTICAL);
 
+        TableLayout.LayoutParams params = new TableLayout.LayoutParams();
+        params.setMargins(7, 5, 7, 5);
+        
         mGetLocationButton = new Button(getContext());
         mGetLocationButton.setPadding(20, 20, 20, 20);
         mGetLocationButton.setText(getContext().getString(R.string.get_location));
         mGetLocationButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, mAnswerFontsize);
         mGetLocationButton.setEnabled(!prompt.isReadOnly());
+        mGetLocationButton.setLayoutParams(params);
 
         // setup play button
         mViewButton = new Button(getContext());
         mViewButton.setText(getContext().getString(R.string.show_location));
         mViewButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, mAnswerFontsize);
         mViewButton.setPadding(20, 20, 20, 20);
-
+        mViewButton.setLayoutParams(params);
+        
         // on play, launch the appropriate viewer
         mViewButton.setOnClickListener(new View.OnClickListener() {
-            
+            @Override
             public void onClick(View v) {
 
                 String s = mStringAnswer.getText().toString();
@@ -122,6 +128,7 @@ public class GeoPointWidget extends QuestionWidget implements IBinaryWidget {
         
         // when you press the button
         mGetLocationButton.setOnClickListener(new View.OnClickListener() {
+            @Override
             public void onClick(View v) {
                 Intent i = null;
                 if (mUseMaps) {
@@ -222,7 +229,7 @@ public class GeoPointWidget extends QuestionWidget implements IBinaryWidget {
     }
 
 
-    
+    @Override
     public void setBinaryData(Object answer) {
         String s = (String) answer;
         mStringAnswer.setText(s);
@@ -238,7 +245,7 @@ public class GeoPointWidget extends QuestionWidget implements IBinaryWidget {
     }
 
 
-    
+    @Override
     public boolean isWaitingForBinaryData() {
         return mWaitingForData;
     }

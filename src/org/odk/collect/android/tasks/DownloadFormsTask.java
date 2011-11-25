@@ -14,6 +14,19 @@
 
 package org.odk.collect.android.tasks;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -35,19 +48,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 /**
  * Background task for downloading a given list of forms. We assume right now that the forms are
  * coming from the same server that presented the form list, but theoretically that won't always be
@@ -59,7 +59,7 @@ import java.util.List;
 public class DownloadFormsTask extends
         AsyncTask<ArrayList<FormDetails>, String, HashMap<String, String>> {
 
-    private static final String t = "DownlaodFormsTask";
+    private static final String t = "DownloadFormsTask";
 
     private static final String MD5_COLON_PREFIX = "md5:";
 
@@ -67,6 +67,13 @@ public class DownloadFormsTask extends
 
     private static final String NAMESPACE_OPENROSA_ORG_XFORMS_XFORMS_MANIFEST =
         "http://openrosa.org/xforms/xformsManifest";
+
+    private String mAuth = "";
+
+
+    public void setAuth(String auth) {
+        this.mAuth = auth;
+    }
 
 
     private boolean isXformsManifestNamespacedElement(Element e) {
@@ -157,6 +164,8 @@ public class DownloadFormsTask extends
                 e.printStackTrace();
                 if (e.getCause() != null) {
                     message += e.getCause().getMessage();
+                } else {
+                    message += e.getMessage();
                 }
             }
             count++;
@@ -239,6 +248,7 @@ public class DownloadFormsTask extends
     private void downloadFile(File f, String downloadUrl) throws Exception {
         URI uri = null;
         try {
+            // assume the downloadUrl is escaped properly
             URL url = new URL(downloadUrl);
             uri = url.toURI();
         } catch (MalformedURLException e) {
@@ -255,7 +265,7 @@ public class DownloadFormsTask extends
         HttpClient httpclient = WebUtils.createHttpClient(WebUtils.CONNECTION_TIMEOUT);
 
         // set up request...
-        HttpGet req = WebUtils.createOpenRosaHttpGet(uri);
+        HttpGet req = WebUtils.createOpenRosaHttpGet(uri, mAuth);
 
         HttpResponse response = null;
         try {
@@ -264,9 +274,8 @@ public class DownloadFormsTask extends
 
             if (statusCode != 200) {
                 String errMsg =
-                    Collect.getInstance()
-                            .getString(R.string.file_fetch_failed, downloadUrl,
-                                response.getStatusLine().getReasonPhrase(), statusCode);
+                    Collect.getInstance().getString(R.string.file_fetch_failed, downloadUrl,
+                        response.getStatusLine().getReasonPhrase(), statusCode);
                 Log.e(t, errMsg);
                 throw new Exception(errMsg);
             }
@@ -333,7 +342,7 @@ public class DownloadFormsTask extends
         HttpClient httpclient = WebUtils.createHttpClient(WebUtils.CONNECTION_TIMEOUT);
 
         DocumentFetchResult result =
-            WebUtils.getXmlDocument(fd.manifestUrl, localContext, httpclient);
+            WebUtils.getXmlDocument(fd.manifestUrl, localContext, httpclient, mAuth);
 
         if (result.errorMessage != null) {
             return result.errorMessage;

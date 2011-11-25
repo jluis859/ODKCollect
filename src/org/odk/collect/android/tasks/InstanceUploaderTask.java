@@ -20,6 +20,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
@@ -44,10 +45,13 @@ import android.webkit.MimeTypeMap;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,10 +68,16 @@ public class InstanceUploaderTask extends AsyncTask<Long, Integer, HashMap<Strin
     private static String t = "InstanceUploaderTask";
     private InstanceUploaderListener mStateListener;
     private static final int CONNECTION_TIMEOUT = 30000;
-    private static final String fail = "FAILED: ";
+    private static final String fail = "Error: ";
+    private String mAuth = "";
 
     private URI mAuthRequestingServer;
     HashMap<String, String> mResults;
+
+
+    public void setAuth(String auth) {
+        this.mAuth = auth;
+    }
 
 
     // TODO: This method is like 350 lines long, down from 400.
@@ -119,7 +129,7 @@ public class InstanceUploaderTask extends AsyncTask<Long, Integer, HashMap<Strin
                 ContentValues cv = new ContentValues();
                 URI u = null;
                 try {
-                    URL url = new URL(urlString);
+                    URL url = new URL(URLDecoder.decode(urlString, "utf-8"));
                     u = url.toURI();
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
@@ -132,6 +142,13 @@ public class InstanceUploaderTask extends AsyncTask<Long, Integer, HashMap<Strin
                     e.printStackTrace();
                     mResults.put(id,
                         fail + "invalid uri: " + urlString + " :: details: " + e.getMessage());
+                    cv.put(InstanceColumns.STATUS, InstanceProviderAPI.STATUS_SUBMISSION_FAILED);
+                    Collect.getInstance().getContentResolver().update(toUpdate, cv, null, null);
+                    continue;
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                    mResults.put(id,
+                        fail + "invalid url: " + urlString + " :: details: " + e.getMessage());
                     cv.put(InstanceColumns.STATUS, InstanceProviderAPI.STATUS_SUBMISSION_FAILED);
                     Collect.getInstance().getContentResolver().update(toUpdate, cv, null, null);
                     continue;
@@ -158,11 +175,13 @@ public class InstanceUploaderTask extends AsyncTask<Long, Integer, HashMap<Strin
                             // we need authentication, so stop and return what we've
                             // done so far.
                             mAuthRequestingServer = u;
-                        } else if (statusCode == 201 || statusCode == 202 || statusCode == 204) {
+                            return null;
+                        } else if (statusCode == 204) {
                             Header[] locations = response.getHeaders("Location");
                             if (locations != null && locations.length == 1) {
                                 try {
-                                    URL url = new URL(locations[0].getValue());
+                                    URL url =
+                                        new URL(URLDecoder.decode(locations[0].getValue(), "utf-8"));
                                     URI uNew = url.toURI();
                                     if (u.getHost().equalsIgnoreCase(uNew.getHost())) {
                                         openRosaServer = true;
@@ -211,8 +230,11 @@ public class InstanceUploaderTask extends AsyncTask<Long, Integer, HashMap<Strin
                             }
 
                             Log.w(t, "Status code on Head request: " + statusCode);
-                            if (statusCode == 200 || (statusCode > 202 && statusCode <= 299)) {
-                                mResults.put(id, fail + "network login? ");
+                            if (statusCode >= 200 && statusCode <= 299) {
+                                mResults.put(
+                                    id,
+                                    fail
+                                            + "Invalid status code on Head request.  If you have a web proxy, you may need to login to your network. ");
                                 cv.put(InstanceColumns.STATUS,
                                     InstanceProviderAPI.STATUS_SUBMISSION_FAILED);
                                 Collect.getInstance().getContentResolver()
@@ -222,13 +244,29 @@ public class InstanceUploaderTask extends AsyncTask<Long, Integer, HashMap<Strin
                         }
                     } catch (ClientProtocolException e) {
                         e.printStackTrace();
-                        mResults.put(id, fail + "client protocol exeption?");
+                        Log.e(t, e.getMessage());
+                        mResults.put(id, fail + "Client Protocol Exception");
+                        cv.put(InstanceColumns.STATUS, InstanceProviderAPI.STATUS_SUBMISSION_FAILED);
+                        Collect.getInstance().getContentResolver().update(toUpdate, cv, null, null);
+                        continue;
+                    } catch (ConnectTimeoutException e) {
+                        e.printStackTrace();
+                        Log.e(t, e.getMessage());
+                        mResults.put(id, fail + "Connection Timeout");
+                        cv.put(InstanceColumns.STATUS, InstanceProviderAPI.STATUS_SUBMISSION_FAILED);
+                        Collect.getInstance().getContentResolver().update(toUpdate, cv, null, null);
+                        continue;
+                    } catch (UnknownHostException e) {
+                        e.printStackTrace();
+                        mResults.put(id, fail + e.getMessage() + " :: Network Connection Failed");
+                        Log.e(t, e.getMessage());
                         cv.put(InstanceColumns.STATUS, InstanceProviderAPI.STATUS_SUBMISSION_FAILED);
                         Collect.getInstance().getContentResolver().update(toUpdate, cv, null, null);
                         continue;
                     } catch (Exception e) {
                         e.printStackTrace();
-                        mResults.put(id, fail + "generic excpetion.  great");
+                        mResults.put(id, fail + "Generic Exception");
+                        Log.e(t, e.getMessage());
                         cv.put(InstanceColumns.STATUS, InstanceProviderAPI.STATUS_SUBMISSION_FAILED);
                         Collect.getInstance().getContentResolver().update(toUpdate, cv, null, null);
                         continue;
@@ -294,7 +332,7 @@ public class InstanceUploaderTask extends AsyncTask<Long, Integer, HashMap<Strin
                 while (j < files.size() || first) {
                     first = false;
 
-                    HttpPost httppost = WebUtils.createOpenRosaHttpPost(u);
+                    HttpPost httppost = WebUtils.createOpenRosaHttpPost(u, mAuth);
 
                     MimeTypeMap m = MimeTypeMap.getSingleton();
 
@@ -417,10 +455,10 @@ public class InstanceUploaderTask extends AsyncTask<Long, Integer, HashMap<Strin
                         // If it wasn't, the submission has failed.
                         if (responseCode != 201 && responseCode != 202) {
                             if (responseCode == 200) {
-                                mResults.put(id, fail + "Network login failure?  again?");
+                                mResults.put(id, fail + "Network login failure? Again?");
                             } else {
-                                mResults.put(id, fail + urlString + " returned " + responseCode + " " + 
-                                        response.getStatusLine().getReasonPhrase());
+                                mResults.put(id, fail + response.getStatusLine().getReasonPhrase()
+                                        + " (" + responseCode + ") at " + urlString);
                             }
                             cv.put(InstanceColumns.STATUS,
                                 InstanceProviderAPI.STATUS_SUBMISSION_FAILED);
@@ -430,7 +468,7 @@ public class InstanceUploaderTask extends AsyncTask<Long, Integer, HashMap<Strin
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        mResults.put(id, fail + "generic exception... " + e.getMessage());
+                        mResults.put(id, fail + "Generic Exception. " + e.getMessage());
                         cv.put(InstanceColumns.STATUS, InstanceProviderAPI.STATUS_SUBMISSION_FAILED);
                         Collect.getInstance().getContentResolver().update(toUpdate, cv, null, null);
                         continue next_submission;

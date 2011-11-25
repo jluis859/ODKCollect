@@ -60,7 +60,7 @@ public class TriggerWidget extends QuestionWidget {
         mTriggerButton.setEnabled(!prompt.isReadOnly());
 
         mTriggerButton.setOnClickListener(new View.OnClickListener() {
-            
+            @Override
             public void onClick(View v) {
                 if (mTriggerButton.isChecked()) {
                     mStringAnswer.setText(mOK);

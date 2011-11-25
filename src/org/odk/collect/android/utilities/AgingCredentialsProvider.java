@@ -43,13 +43,13 @@ public class AgingCredentialsProvider implements CredentialsProvider {
     }
 
 
-    
+    @Override
     public synchronized void clear() {
         provider.clear();
     }
 
 
-    
+    @Override
     public synchronized Credentials getCredentials(AuthScope authscope) {
         if (nextClearTimestamp < System.currentTimeMillis()) {
             clear();
@@ -59,7 +59,7 @@ public class AgingCredentialsProvider implements CredentialsProvider {
     }
 
 
-    
+    @Override
     public synchronized void setCredentials(AuthScope authscope, Credentials credentials) {
         if (nextClearTimestamp < System.currentTimeMillis()) {
             clear();

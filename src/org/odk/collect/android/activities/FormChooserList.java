@@ -161,6 +161,7 @@ public class FormChooserList extends ListActivity implements DiskSyncListener {
     /**
      * Called by DiskSyncTask when the task is finished
      */
+    @Override
     public void SyncComplete(String result) {
         Log.i(t, "disk sync task complete");
         TextView tv = (TextView) findViewById(R.id.status_text);
@@ -180,6 +181,7 @@ public class FormChooserList extends ListActivity implements DiskSyncListener {
         mAlertDialog.setIcon(android.R.drawable.ic_dialog_info);
         mAlertDialog.setMessage(errorMsg);
         DialogInterface.OnClickListener errorListener = new DialogInterface.OnClickListener() {
+            @Override
             public void onClick(DialogInterface dialog, int i) {
                 switch (i) {
                     case DialogInterface.BUTTON1:

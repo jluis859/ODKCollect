@@ -149,7 +149,7 @@ public class SelectOneWidget extends QuestionWidget implements OnCheckedChangeLi
     }
 
 
-    
+    @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         if (!isChecked) {
             // If it got unchecked, we don't care.

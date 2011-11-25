@@ -11,7 +11,7 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
 WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations under
-the License. 
+the License.
 -->
 <LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
@@ -42,8 +42,8 @@ the License.
 			android:id="@android:id/empty"
 			android:layout_width="fill_parent"
 			android:layout_height="fill_parent"
-			android:text="@string/no_items_display"
-			android:textSize="19dp"
+			android:text="@string/no_items_display_forms"
+			android:textSize="21dp"
 			android:paddingLeft="20dp"
 			android:paddingRight="20dp"
 			android:gravity="center"

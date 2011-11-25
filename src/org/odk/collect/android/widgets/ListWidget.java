@@ -263,7 +263,7 @@ public class ListWidget extends QuestionWidget implements OnCheckedChangeListene
     }
 
 
-    
+    @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         if (!isChecked) {
             // If it got unchecked, we don't care.

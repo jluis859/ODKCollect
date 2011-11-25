@@ -66,10 +66,10 @@ public class DownloadFormListTask extends AsyncTask<Void, String, HashMap<String
         String downloadListUrl =
             settings.getString(PreferencesActivity.KEY_SERVER_URL,
                 Collect.getInstance().getString(R.string.default_server_url));
-        String downloadPath =
-            settings.getString(PreferencesActivity.KEY_FORMLIST_URL, "/formlist");
+        String downloadPath = settings.getString(PreferencesActivity.KEY_FORMLIST_URL, "/formlist");
         downloadListUrl += downloadPath;
-        
+        String auth = settings.getString(PreferencesActivity.KEY_AUTH, "");
+
         // We populate this with available forms from the specified server.
         // <formname, details>
         HashMap<String, FormDetails> formList = new HashMap<String, FormDetails>();
@@ -79,7 +79,7 @@ public class DownloadFormListTask extends AsyncTask<Void, String, HashMap<String
         HttpClient httpclient = WebUtils.createHttpClient(WebUtils.CONNECTION_TIMEOUT);
 
         DocumentFetchResult result =
-            WebUtils.getXmlDocument(downloadListUrl, localContext, httpclient);
+            WebUtils.getXmlDocument(downloadListUrl, localContext, httpclient, auth);
 
         // If we can't get the document, return the error, cancel the task
         if (result.errorMessage != null) {
@@ -233,7 +233,6 @@ public class DownloadFormListTask extends AsyncTask<Void, String, HashMap<String
             // populate HashMap with form names and urls
             Element formsElement = result.doc.getRootElement();
             int formsCount = formsElement.getChildCount();
-            String formId = null;            
             for (int i = 0; i < formsCount; ++i) {
                 if (formsElement.getType(i) != Element.ELEMENT) {
                     // whitespace
@@ -241,6 +240,7 @@ public class DownloadFormListTask extends AsyncTask<Void, String, HashMap<String
                 }
                 Element child = formsElement.getElement(i);
                 String tag = child.getName();
+                String formId = null;
                 if (tag.equals("formID")) {
                     formId = XFormParser.getXMLText(child, true);
                     if (formId != null && formId.length() == 0) {
@@ -269,10 +269,7 @@ public class DownloadFormListTask extends AsyncTask<Void, String, HashMap<String
                                 R.string.parse_legacy_formlist_failed, error)));
                         return formList;
                     }
-                    formList.put(formId, new FormDetails(formName, downloadUrl, null, formId));
-                    
-                    // reset our form id
-                    formId = null;
+                    formList.put(formName, new FormDetails(formName, downloadUrl, null, formName));
                 }
             }
         }

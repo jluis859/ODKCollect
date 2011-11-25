@@ -118,16 +118,23 @@ public class InstanceUploaderActivity extends Activity implements InstanceUpload
         if (mInstanceUploaderTask == null) {
             // setup dialog and upload task
             showDialog(PROGRESS_DIALOG);
+            SharedPreferences settings =
+                PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             mInstanceUploaderTask = new InstanceUploaderTask();
+
+            // register this activity with the new uploader task
+            mInstanceUploaderTask.setUploaderListener(InstanceUploaderActivity.this);
 
             Long[] toSendArray = new Long[mInstancesToSend.size()];
             mInstancesToSend.toArray(toSendArray);
+            String auth = settings.getString(PreferencesActivity.KEY_AUTH, "");
+            mInstanceUploaderTask.setAuth(auth);
             mInstanceUploaderTask.execute(toSendArray);
-        } 
+        }
     }
 
 
-    
+    @Override
     public void uploadingComplete(HashMap<String, String> result) {
         try {
             dismissDialog(PROGRESS_DIALOG);
@@ -160,17 +167,17 @@ public class InstanceUploaderActivity extends Activity implements InstanceUpload
                 String name =
                     results.getString(results.getColumnIndex(InstanceColumns.DISPLAY_NAME));
                 String id = results.getString(results.getColumnIndex(InstanceColumns._ID));
-                message.append(name + " : " + result.get(id) + "\n\n");
+                message.append(name + " - " + result.get(id) + "\n\n");
             }
         } else {
             message.append(getString(R.string.no_forms_uploaded));
         }
 
-        createAlertDialog(message.toString());
+        createAlertDialog(message.toString().trim());
     }
 
 
-    
+    @Override
     public void progressUpdate(int progress, int total) {
         mAlertMsg = getString(R.string.sending_items, progress, total);
         mProgressDialog.setMessage(mAlertMsg);
@@ -184,7 +191,7 @@ public class InstanceUploaderActivity extends Activity implements InstanceUpload
                 mProgressDialog = new ProgressDialog(this);
                 DialogInterface.OnClickListener loadingButtonListener =
                     new DialogInterface.OnClickListener() {
-                        
+                        @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
                             mInstanceUploaderTask.cancel(true);
@@ -235,7 +242,7 @@ public class InstanceUploaderActivity extends Activity implements InstanceUpload
                 b.setMessage(getString(R.string.server_auth_credentials, url));
                 b.setView(dialogView);
                 b.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    
+                    @Override
                     public void onClick(DialogInterface dialog, int which) {
                         EditText username = (EditText) dialogView.findViewById(R.id.username_edit);
                         EditText password = (EditText) dialogView.findViewById(R.id.password_edit);
@@ -246,6 +253,9 @@ public class InstanceUploaderActivity extends Activity implements InstanceUpload
 
                         mInstanceUploaderTask = new InstanceUploaderTask();
 
+                        // register this activity with the new uploader task
+                        mInstanceUploaderTask.setUploaderListener(InstanceUploaderActivity.this);
+
                         Long[] toSendArray = new Long[mInstancesToSend.size()];
                         mInstancesToSend.toArray(toSendArray);
                         mInstanceUploaderTask.execute(toSendArray);
@@ -254,7 +264,7 @@ public class InstanceUploaderActivity extends Activity implements InstanceUpload
                 });
                 b.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
 
-                    
+                    @Override
                     public void onClick(DialogInterface dialog, int which) {
                         finish();
                     }
@@ -320,7 +330,7 @@ public class InstanceUploaderActivity extends Activity implements InstanceUpload
     }
 
 
-    
+    @Override
     public void authRequest(URI url, HashMap<String, String> doneSoFar) {
         if (mProgressDialog.isShowing()) {
             // should always be showing here
@@ -344,9 +354,9 @@ public class InstanceUploaderActivity extends Activity implements InstanceUpload
             mUploadedInstances.putAll(doneSoFar);
         }
 
-//        Bundle b = new Bundle();
-//        b.putString(AUTH_URI, url.toString());
-//        showDialog(AUTH_DIALOG, b);
+        // Bundle b = new Bundle();
+        // b.putString(AUTH_URI, url.toString());
+        // showDialog(AUTH_DIALOG, b);
         mUrl = url.toString();
         showDialog(AUTH_DIALOG);
     }
@@ -357,7 +367,7 @@ public class InstanceUploaderActivity extends Activity implements InstanceUpload
         mAlertDialog.setTitle(getString(R.string.upload_results));
         mAlertDialog.setMessage(message);
         DialogInterface.OnClickListener quitListener = new DialogInterface.OnClickListener() {
-            
+            @Override
             public void onClick(DialogInterface dialog, int i) {
                 switch (i) {
                     case DialogInterface.BUTTON1: // ok

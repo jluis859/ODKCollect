@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -148,16 +149,35 @@ public final class WebUtils {
 
 
     public static final HttpGet createOpenRosaHttpGet(URI uri) {
+        return createOpenRosaHttpGet(uri, "");
+    }
+
+
+    public static final HttpGet createOpenRosaHttpGet(URI uri, String auth) {
         HttpGet req = new HttpGet();
         setOpenRosaHeaders(req);
+        setGoogleHeaders(req, auth);
         req.setURI(uri);
         return req;
     }
 
 
+    public static final void setGoogleHeaders(HttpRequest req, String auth) {
+        if ((auth != null) && (auth.length() > 0)) {
+            req.setHeader("Authorization", "GoogleLogin auth=" + auth);
+        }
+    }
+
+
     public static final HttpPost createOpenRosaHttpPost(URI uri) {
+        return createOpenRosaHttpPost(uri, "");
+    }
+
+
+    public static final HttpPost createOpenRosaHttpPost(URI uri, String auth) {
         HttpPost req = new HttpPost(uri);
         setOpenRosaHeaders(req);
+        setGoogleHeaders(req, auth);
         return req;
     }
 
@@ -180,8 +200,8 @@ public final class WebUtils {
 
         // setup client
         HttpClient httpclient = new DefaultHttpClient(params);
-        httpclient.getParams().setParameter(ClientPNames.MAX_REDIRECTS, 1); 
-        httpclient.getParams().setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true); 
+        httpclient.getParams().setParameter(ClientPNames.MAX_REDIRECTS, 1);
+        httpclient.getParams().setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
 
         return httpclient;
     }
@@ -197,10 +217,10 @@ public final class WebUtils {
      * @return
      */
     public static DocumentFetchResult getXmlDocument(String urlString, HttpContext localContext,
-            HttpClient httpclient) {
+            HttpClient httpclient, String auth) {
         URI u = null;
         try {
-            URL url = new URL(urlString);
+            URL url = new URL(URLDecoder.decode(urlString, "utf-8"));
             u = url.toURI();
         } catch (Exception e) {
             e.printStackTrace();
@@ -210,7 +230,7 @@ public final class WebUtils {
         }
 
         // set up request...
-        HttpGet req = WebUtils.createOpenRosaHttpGet(u);
+        HttpGet req = WebUtils.createOpenRosaHttpGet(u, auth);
 
         HttpResponse response = null;
         try {
@@ -252,8 +272,11 @@ public final class WebUtils {
             if (!entity.getContentType().getValue().toLowerCase()
                     .contains(WebUtils.HTTP_CONTENT_TYPE_TEXT_XML)) {
                 String error =
-                    "ContentType: " + entity.getContentType().getValue() + "returned from: "
-                            + u.toString() + " is not text/xml";
+                    "ContentType: "
+                            + entity.getContentType().getValue()
+                            + " returned from: "
+                            + u.toString()
+                            + " is not text/xml.  This is often caused a network proxy.  Do you need to login to your network?";
                 Log.e(t, error);
                 return new DocumentFetchResult(error, 0);
             }
@@ -322,8 +345,7 @@ public final class WebUtils {
                 }
             }
             return new DocumentFetchResult(doc, isOR);
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             String cause;
             if (e.getCause() != null) {
