@@ -57,7 +57,7 @@
 <string name="delete_yes">Borrar Formularios</string>
 <string name="discard_answer">Respuesta descartada</string>
 <string name="discard_group">Grupo borrado</string>
-<string name="download">Selecciona</string>
+<string name="download">Seleccionar</string>
 <string name="download_forms_result">Resultados de descarga</string>
 <string name="downloading_data">Conectando al servidor</string>
 <string name="download_all_successful">Todos los Formularios descargados correctamente</string>
@@ -80,9 +80,9 @@
 <string name="file_deleted_ok">%s Formularios(s) borrados con éxito!</string>
 <string name="file_invalid">File: %s es inválido.</string>
 <string name="file_missing">File: %s esta perdido.</string>
-<string name="finished_disk_scan">Finalizo el escaneo...Todas todos los Formularios cargadas.</string>
+<string name="finished_disk_scan">Finalizo el escaneo...Todas todos los Formularios cargados.</string>
 <string name="form">Formulario</string>
-<string name="forms">Nuevos Formularios</string>
+<string name="forms">Formularios Nuevos</string>
 <string name="form_renamed">%1$s fue renombrado %2$s.</string>
 <string name="getting_location">Cargando ubicación</string>
 <string name="get_barcode">Obtener Barcode</string>
@@ -126,7 +126,7 @@
 <string name="password">Clave</string>
 <string name="play_audio">Reproducir sonido</string>
 <string name="play_video">Reproducir video</string>
-<string name="please_wait">Por favor esperar unos momentos.</string>
+<string name="please_wait">Por favor esperar un momento.</string>
 <string name="please_wait_long">Por favor espere. Esto puede tomar pocos minutos.</string>
 <string name="quit_application">Salir %s</string>
 <string name="quit_entry">Guardar Formulario y salir</string>
